@@ -19,6 +19,14 @@ func main() {
 			fmt.Fprintln(os.Stderr, "Error reading input:", err)
 			os.Exit(1)
 		}
-		fmt.Printf(command + ": command not found\n")
+
+		switch command{
+			case "exit":
+				fallthrough
+			case "exit 0":
+				os.Exit(0)
+			default:
+				fmt.Printf(command + ": command not found\n")
+		}
 	}
 }
