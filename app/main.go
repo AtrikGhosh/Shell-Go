@@ -20,13 +20,22 @@ func main() {
 			os.Exit(1)
 		}
 		cmd_list := strings.Split(command," ")
-		switch cmd_list[0]{
+
+		cmd := cmd_list[0]
+		args := strings.Join(cmd_list[1:]," ")
+		switch cmd{
 			case "exit":
 				fallthrough
 			case "exit 0":
 				os.Exit(0)
 			case "echo":
-				fmt.Println(strings.Join(cmd_list[1:]," "))
+				fmt.Println(args)
+			case "type":
+				if args == "echo" || args == "exit" || args == "type" {
+					fmt.Println(args + " is a shell builtin")
+				} else {
+					fmt.Println(args + ": not found")
+				}
 			default:
 				fmt.Printf(command + ": command not found\n")
 		}
