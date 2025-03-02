@@ -19,12 +19,14 @@ func main() {
 			fmt.Fprintln(os.Stderr, "Error reading input:", err)
 			os.Exit(1)
 		}
-
-		switch command{
+		cmd_list := strings.Split(command," ")
+		switch cmd_list[0]{
 			case "exit":
 				fallthrough
 			case "exit 0":
 				os.Exit(0)
+			case "echo":
+				fmt.Println(strings.Join(cmd_list[1:]," "))
 			default:
 				fmt.Printf(command + ": command not found\n")
 		}
