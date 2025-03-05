@@ -10,6 +10,22 @@ import (
 // Ensures gofmt doesn't remove the "fmt" import in stage 1 (feel free to remove this!)
 var _ = fmt.Fprint
 
+
+type Command struct {
+	name string
+	args []string
+}
+
+
+func parseCmd(str string) Command {
+	parts := strings.Fields(str)
+	name := parts[0]
+	args := parts[1:]
+	return Command{name, args}
+}
+
+
+
 func main() {
 
 	// Wait for user input
@@ -19,8 +35,14 @@ func main() {
 		fmt.Fprint(os.Stdout, "$ ")
 
 		input,_ := reader.ReadString('\n')
-		input = strings.TrimSpace(input)
+		cmd := parseCmd(strings.TrimSpace(input))
 
-		fmt.Println(input + ": command not found")
+		switch cmd.name{
+			case "exit":
+				os.Exit(0)
+			default:	
+				fmt.Println(cmd.name + ": command not found")
+		}
+
 	}
 }
