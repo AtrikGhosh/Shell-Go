@@ -40,6 +40,8 @@ func main() {
 		switch cmd.name{
 			case "exit":
 				os.Exit(0)
+			case "echo":
+				fmt.Println(strings.Join(cmd.args," "))
 			default:	
 				fmt.Println(cmd.name + ": command not found")
 		}
