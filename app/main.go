@@ -22,22 +22,64 @@ type Command struct {
 func parseCmd(str string) Command {
 	parts := strings.SplitN(str," ",2)
 	name := parts[0]
-	arg_str := parts[1]
-	var args_list []string
-	var start int
-	var end int
+	var args_list []string 
+	if len(parts)>1{
+		arg_str := parts[1]
+
+		// var start int
+		// var end int
+		// var prev_end int
+		// var curr_start int
+
+		// for start<len(arg_str) {
+		// 	curr_start = strings.Index(arg_str[start:], "'")
+		// 	if curr_start == -1 {
+		// 		for arg := range strings.SplitSeq(arg_str[prev_end:], " "){
+		// 			trimmed_arg := strings.TrimSpace(arg)
+		// 			if len(trimmed_arg)>0 {
+		// 				args_list = append(args_list, trimmed_arg)
+		// 			}
+		// 		}
+		// 		break
+		// 	}
+		// 	start += curr_start
+		// 	for arg := range strings.SplitSeq(arg_str[prev_end:start], " "){
+		// 		trimmed_arg := strings.TrimSpace(arg)
+		// 		if len(trimmed_arg)>0 {
+		// 			args_list = append(args_list, trimmed_arg)
+		// 		}
+		// 	}
+		// 	end = start + 1 + strings.Index(arg_str[start+1:],"'")
+		// 	args_list = append(args_list, arg_str[start+1:min(len(arg_str)-1,end)])
+		// 	start = end+1
+		// 	prev_end = end+1
+		// 	fmt.Println(args_list)
+		// }
 	
-	for {
-		start = strings.Index(arg_str[end+1:], "'")
-		if start == -1 {
-			args_list = append(args_list, strings.Split(arg_str, " ")...)
-			break
+		for {
+			start := strings.Index(arg_str, "'")
+			if start == -1 {
+				for arg := range strings.SplitSeq(arg_str, " "){
+					trimmed_arg := strings.TrimSpace(arg)
+					if len(trimmed_arg)>0 {
+						args_list = append(args_list, trimmed_arg)
+					}
+				}	
+				break
+			}
+			for arg := range strings.SplitSeq(arg_str[:start], " "){
+				trimmed_arg := strings.TrimSpace(arg)
+				if len(trimmed_arg)>0 {
+					args_list = append(args_list, trimmed_arg)
+				}
+			
+			}
+			arg_str = arg_str[start+1:]
+			end := strings.Index(arg_str, "'")
+			qouted_arg := arg_str[:end]
+			args_list = append(args_list, qouted_arg)
+			arg_str = arg_str[end+1:]
 		}
-		args_list = append(args_list, strings.Split(arg_str[end+1:start]," ")...)
-		
-		end = strings.Index(arg_str[start+1:], "'")
-		args_list= append(args_list, arg_str[start+1:end])
-		
 	}
 	return Command{name, args_list}
 }
@@ -53,7 +95,7 @@ func main() {
 		fmt.Fprint(os.Stdout, "$ ")
 
 		input,_ := reader.ReadString('\n')
-		cmd := parseCmd(strings.Trim(input, "\r\n"))
+		cmd := parseCmd(strings.TrimSpace(input))
 
 		switch cmd.name{
 			case "exit":
