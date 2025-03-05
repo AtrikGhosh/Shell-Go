@@ -60,6 +60,15 @@ func main() {
 				} else {
 					fmt.Println(pwd)
 				}
+			case "cd":
+				if len(cmd.args) > 0{
+					location := cmd.args[0]
+					if err := os.Chdir(location); err != nil {
+						fmt.Printf("%s: No such file or directory\n", location)
+					}
+				} else{
+					fmt.Println("Invalid Argument: No file or directory specified")
+				}	
 			default:	
 				command := exec.Command(cmd.name, cmd.args...)
 				command.Stdout = os.Stdout
