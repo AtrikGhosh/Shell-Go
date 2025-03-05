@@ -54,7 +54,14 @@ func main() {
 					fmt.Println(arg + ": not found")
 				}
 			default:	
-				fmt.Println(cmd.name + ": command not found")
+				command := exec.Command(cmd.name, cmd.args...)
+				command.Stdout = os.Stdout
+				command.Stderr = os.Stderr
+
+				err := command.Run()
+				if err!=nil{
+					fmt.Println(cmd.name + ": command not found")
+			}
 		}
 
 	}
