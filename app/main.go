@@ -6,7 +6,8 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-
+	// "path"
+	"path/filepath"
 )
 
 // Ensures gofmt doesn't remove the "fmt" import in stage 1 (feel free to remove this!)
@@ -62,10 +63,12 @@ func main() {
 				}
 			case "cd":
 				if len(cmd.args) > 0{
-					location := cmd.args[0]
-					if(location == "~"){
-						location = os.Getenv("HOME")
-					}
+					location,_ := filepath.Abs(strings.Join(cmd.args, "\\"))
+
+					// if location_arr[0] == "~" {
+					// 	location := os.Getenv("HOME")+strings.Join(location_arr[1:], "/")
+					// }else if location_arr[0] == "."
+
 					if err := os.Chdir(location); err != nil {
 						fmt.Printf("%s: No such file or directory\n", location)
 					}
