@@ -11,13 +11,13 @@ import (
 var _ = fmt.Fprint
 
 func main() {
-	// Uncomment this block to pass the first stage
-	fmt.Fprint(os.Stdout, "$ ")
 
 	// Wait for user input
 	reader := bufio.NewReader(os.Stdin)
 
 	for{
+		fmt.Fprint(os.Stdout, "$ ")
+		
 		input,_ := reader.ReadString('\n')
 		input = strings.TrimSpace(input)
 
