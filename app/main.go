@@ -17,10 +17,10 @@ func main() {
 
 	for{
 		fmt.Fprint(os.Stdout, "$ ")
-		
+
 		input,_ := reader.ReadString('\n')
 		input = strings.TrimSpace(input)
 
-		fmt.Println(input + ": command not found\n")
+		fmt.Println(input + ": command not found")
 	}
 }
