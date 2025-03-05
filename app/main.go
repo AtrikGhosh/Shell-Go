@@ -46,6 +46,8 @@ func main() {
 				arg := cmd.args[0]
 				if arg == "echo" || arg == "exit" || arg == "type" {
 					fmt.Println(cmd.args[0] + " is a shell builtin")
+				} else {
+					fmt.Println(arg + ": not found")
 				}
 			default:	
 				fmt.Println(cmd.name + ": command not found")
