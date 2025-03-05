@@ -53,6 +53,13 @@ func main() {
 				}else {
 					fmt.Println(arg + ": not found")
 				}
+			case "pwd":
+				pwd, err := os.Getwd()
+				if err != nil {
+					fmt.Printf("Error printing directory: %s\n", err)
+				} else {
+					fmt.Println(pwd)
+				}
 			default:	
 				command := exec.Command(cmd.name, cmd.args...)
 				command.Stdout = os.Stdout
