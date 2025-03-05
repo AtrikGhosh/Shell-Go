@@ -63,6 +63,9 @@ func main() {
 			case "cd":
 				if len(cmd.args) > 0{
 					location := cmd.args[0]
+					if(location == "~"){
+						location = os.Getenv("HOME")
+					}
 					if err := os.Chdir(location); err != nil {
 						fmt.Printf("%s: No such file or directory\n", location)
 					}
