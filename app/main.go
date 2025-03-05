@@ -46,7 +46,7 @@ func main() {
 				fmt.Println(strings.Join(cmd.args," "))
 			case "type":
 				arg := cmd.args[0]
-				if arg == "echo" || arg == "exit" || arg == "type" {
+				if arg == "echo" || arg == "exit" || arg == "type" || arg == "pwd"{
 					fmt.Println(cmd.args[0] + " is a shell builtin")
 				} else if path,err := exec.LookPath(arg);err == nil{
 					fmt.Println(arg + " is " + path)
