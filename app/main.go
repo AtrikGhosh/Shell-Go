@@ -20,10 +20,26 @@ type Command struct {
 
 
 func parseCmd(str string) Command {
-	parts := strings.Fields(str)
+	parts := strings.SplitN(str," ",2)
 	name := parts[0]
-	args := parts[1:]
-	return Command{name, args}
+	arg_str := parts[1]
+	var args_list []string
+	var start int
+	var end int
+	
+	for {
+		start = strings.Index(arg_str[end+1:], "'")
+		if start == -1 {
+			args_list = append(args_list, strings.Split(arg_str, " ")...)
+			break
+		}
+		args_list = append(args_list, strings.Split(arg_str[end+1:start]," ")...)
+		
+		end = strings.Index(arg_str[start+1:], "'")
+		args_list= append(args_list, arg_str[start+1:end])
+		
+	}
+	return Command{name, args_list}
 }
 
 
@@ -37,7 +53,7 @@ func main() {
 		fmt.Fprint(os.Stdout, "$ ")
 
 		input,_ := reader.ReadString('\n')
-		cmd := parseCmd(strings.TrimSpace(input))
+		cmd := parseCmd(strings.Trim(input, "\r\n"))
 
 		switch cmd.name{
 			case "exit":
@@ -65,7 +81,7 @@ func main() {
 					location_arr := strings.Split(cmd.args[0], "/")
 					var location string
 					if cmd.args[0][0] == '~' {
-						location = os.Getenv("HOME")+"/"+strings.Join(location_arr[1:], "/")
+						location = os.Getenv("HOME")+"/"+filepath.Clean(strings.Join(location_arr[1:], "/"))
 					}else{
 						location, _ = filepath.Abs(cmd.args[0])
 					}
