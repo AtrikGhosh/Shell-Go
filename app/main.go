@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	// "path"
 	"path/filepath"
 )
 
@@ -63,11 +62,13 @@ func main() {
 				}
 			case "cd":
 				if len(cmd.args) > 0{
-					location,_ := filepath.Abs(strings.Join(cmd.args, "\\"))
-
-					// if location_arr[0] == "~" {
-					// 	location := os.Getenv("HOME")+strings.Join(location_arr[1:], "/")
-					// }else if location_arr[0] == "."
+					location_arr := strings.Split(cmd.args[0], "/")
+					var location string
+					if cmd.args[0][0] == '~' {
+						location = os.Getenv("HOME")+"/"+strings.Join(location_arr[1:], "/")
+					}else{
+						location, _ = filepath.Abs(cmd.args[0])
+					}
 
 					if err := os.Chdir(location); err != nil {
 						fmt.Printf("%s: No such file or directory\n", location)
