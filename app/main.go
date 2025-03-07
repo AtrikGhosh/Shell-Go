@@ -24,8 +24,31 @@ func parseCmd(str string) Command {
 	name := parts[0]
 	var args_list []string 
 	if len(parts)>1{
-		arg_str := parts[1]
+		arg_str := parts[1]+" "
+		len_arg_str := len(arg_str)
+		curr_sub_str := ""
+		curr_idx := 0
+		for curr_idx < len_arg_str{
+			
+			if(arg_str[curr_idx] == '\''){
+				end := curr_idx + 1 + strings.Index(arg_str[curr_idx+1:],"'")
+				curr_sub_str += arg_str[curr_idx+1:end]
+				curr_idx = end
+			} else if arg_str[curr_idx] == ' '{
+				if len(curr_sub_str)>0{
+					args_list = append(args_list, curr_sub_str)
+					curr_sub_str = ""
+				}
+				
+			} else{
+				curr_sub_str += string(arg_str[curr_idx])
+			}
 
+			curr_idx += 1
+		}
+		if len(curr_sub_str) > 0{
+			args_list = append(args_list, curr_sub_str)
+		}
 		// var start int
 		// var end int
 		// var prev_end int
@@ -56,30 +79,30 @@ func parseCmd(str string) Command {
 		// 	fmt.Println(args_list)
 		// }
 	
-		for {
-			start := strings.Index(arg_str, "'")
-			if start == -1 {
-				for arg := range strings.SplitSeq(arg_str, " "){
-					trimmed_arg := strings.TrimSpace(arg)
-					if len(trimmed_arg)>0 {
-						args_list = append(args_list, trimmed_arg)
-					}
-				}	
-				break
-			}
-			for arg := range strings.SplitSeq(arg_str[:start], " "){
-				trimmed_arg := strings.TrimSpace(arg)
-				if len(trimmed_arg)>0 {
-					args_list = append(args_list, trimmed_arg)
-				}
+	// 	for {
+	// 		start := strings.Index(arg_str, "'")
+	// 		if start == -1 {
+	// 			for arg := range strings.SplitSeq(arg_str, " "){
+	// 				trimmed_arg := strings.TrimSpace(arg)
+	// 				if len(trimmed_arg)>0 {
+	// 					args_list = append(args_list, trimmed_arg)
+	// 				}
+	// 			}	
+	// 			break
+	// 		}
+	// 		for arg := range strings.SplitSeq(arg_str[:start], " "){
+	// 			trimmed_arg := strings.TrimSpace(arg)
+	// 			if len(trimmed_arg)>0 {
+	// 				args_list = append(args_list, trimmed_arg)
+	// 			}
 			
-			}
-			arg_str = arg_str[start+1:]
-			end := strings.Index(arg_str, "'")
-			qouted_arg := arg_str[:end]
-			args_list = append(args_list, qouted_arg)
-			arg_str = arg_str[end+1:]
-		}
+	// 		}
+	// 		arg_str = arg_str[start+1:]
+	// 		end := strings.Index(arg_str, "'")
+	// 		qouted_arg := arg_str[:end]
+	// 		args_list = append(args_list, qouted_arg)
+	// 		arg_str = arg_str[end+1:]
+	// 	}
 	}
 	return Command{name, args_list}
 }
