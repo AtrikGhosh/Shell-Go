@@ -23,87 +23,60 @@ func parseCmd(str string) Command {
 	parts := strings.SplitN(str," ",2)
 	name := parts[0]
 	var args_list []string 
-	if len(parts)>1{
-		arg_str := parts[1]+" "
-		len_arg_str := len(arg_str)
-		curr_sub_str := ""
-		curr_idx := 0
-		for curr_idx < len_arg_str{
-			
-			if(arg_str[curr_idx] == '\''){
-				end := curr_idx + 1 + strings.Index(arg_str[curr_idx+1:],"'")
-				curr_sub_str += arg_str[curr_idx+1:end]
-				curr_idx = end
-			} else if arg_str[curr_idx] == ' '{
-				if len(curr_sub_str)>0{
+	if len(parts) > 1 {
+		argStr := parts[1] + " "
+		var curr_sub_str string
+		inQuotes := false
+
+		for _, char := range argStr {
+			switch {
+			case char == '\'':
+				inQuotes = !inQuotes // Toggle quote state
+			case char == ' ' && !inQuotes:
+				if len(curr_sub_str) > 0 {
 					args_list = append(args_list, curr_sub_str)
 					curr_sub_str = ""
 				}
-				
-			} else{
-				curr_sub_str += string(arg_str[curr_idx])
+			default:
+				curr_sub_str += string(char)
 			}
-
-			curr_idx += 1
 		}
-		if len(curr_sub_str) > 0{
+
+		if len(curr_sub_str) > 0 {
 			args_list = append(args_list, curr_sub_str)
 		}
-		// var start int
-		// var end int
-		// var prev_end int
-		// var curr_start int
-
-		// for start<len(arg_str) {
-		// 	curr_start = strings.Index(arg_str[start:], "'")
-		// 	if curr_start == -1 {
-		// 		for arg := range strings.SplitSeq(arg_str[prev_end:], " "){
-		// 			trimmed_arg := strings.TrimSpace(arg)
-		// 			if len(trimmed_arg)>0 {
-		// 				args_list = append(args_list, trimmed_arg)
-		// 			}
-		// 		}
-		// 		break
-		// 	}
-		// 	start += curr_start
-		// 	for arg := range strings.SplitSeq(arg_str[prev_end:start], " "){
-		// 		trimmed_arg := strings.TrimSpace(arg)
-		// 		if len(trimmed_arg)>0 {
-		// 			args_list = append(args_list, trimmed_arg)
-		// 		}
-		// 	}
-		// 	end = start + 1 + strings.Index(arg_str[start+1:],"'")
-		// 	args_list = append(args_list, arg_str[start+1:min(len(arg_str)-1,end)])
-		// 	start = end+1
-		// 	prev_end = end+1
-		// 	fmt.Println(args_list)
-		// }
-	
-	// 	for {
-	// 		start := strings.Index(arg_str, "'")
-	// 		if start == -1 {
-	// 			for arg := range strings.SplitSeq(arg_str, " "){
-	// 				trimmed_arg := strings.TrimSpace(arg)
-	// 				if len(trimmed_arg)>0 {
-	// 					args_list = append(args_list, trimmed_arg)
-	// 				}
-	// 			}	
-	// 			break
-	// 		}
-	// 		for arg := range strings.SplitSeq(arg_str[:start], " "){
-	// 			trimmed_arg := strings.TrimSpace(arg)
-	// 			if len(trimmed_arg)>0 {
-	// 				args_list = append(args_list, trimmed_arg)
-	// 			}
-			
-	// 		}
-	// 		arg_str = arg_str[start+1:]
-	// 		end := strings.Index(arg_str, "'")
-	// 		qouted_arg := arg_str[:end]
-	// 		args_list = append(args_list, qouted_arg)
-	// 		arg_str = arg_str[end+1:]
-	// 	}
 	}
+
+
+
+	// if len(parts)>1{
+	// 	arg_str := parts[1]+" "
+	// 	len_arg_str := len(arg_str)
+	// 	curr_sub_str := ""
+	// 	curr_idx := 0
+	// 	for curr_idx < len_arg_str{
+			
+	// 		if(arg_str[curr_idx] == '\''){
+	// 			end := curr_idx + 1 + strings.Index(arg_str[curr_idx+1:],"'")
+	// 			curr_sub_str += arg_str[curr_idx+1:end]
+	// 			curr_idx = end
+	// 		} else if arg_str[curr_idx] == ' '{
+	// 			if len(curr_sub_str)>0{
+	// 				args_list = append(args_list, curr_sub_str)
+	// 				curr_sub_str = ""
+	// 			}
+				
+	// 		} else{
+	// 			curr_sub_str += string(arg_str[curr_idx])
+	// 		}
+
+	// 		curr_idx += 1
+	// 	}
+	// 	if len(curr_sub_str) > 0{
+	// 		args_list = append(args_list, curr_sub_str)
+	// 	}
+
+	
 	return Command{name, args_list}
 }
 
