@@ -26,13 +26,15 @@ func parseCmd(str string) Command {
 	if len(parts) > 1 {
 		argStr := parts[1] + " "
 		var curr_sub_str string
-		inQuotes := false
-
+		in_single_quotes := false
+		in_double_qoutes := false
 		for _, char := range argStr {
 			switch {
-			case char == '\'':
-				inQuotes = !inQuotes // Toggle quote state
-			case char == ' ' && !inQuotes:
+			case char == '"':
+				in_double_qoutes = !in_double_qoutes
+			case char == '\'' && !in_double_qoutes:
+				in_single_quotes = !in_single_quotes // Toggle quote state
+			case char == ' ' && !in_single_quotes && !in_double_qoutes:
 				if len(curr_sub_str) > 0 {
 					args_list = append(args_list, curr_sub_str)
 					curr_sub_str = ""
@@ -76,7 +78,7 @@ func parseCmd(str string) Command {
 	// 		args_list = append(args_list, curr_sub_str)
 	// 	}
 
-	
+
 	return Command{name, args_list}
 }
 
