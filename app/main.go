@@ -25,34 +25,40 @@ func parseCmd(str string) Command {
 	var args_list []string 
 	if len(parts) > 1 {
 		arg_str := parts[1]
-		var curr_sub_str string
+		var curr_sub_str strings.Builder
 		in_single_quotes := false
 		in_double_qoutes := false
-		escaped := false
+		escaped := 0 //0 = unescaped 1 = semi escaped 2 = escaped
 		
 		for _,char := range arg_str {
 			switch {
-				case escaped:
-					curr_sub_str += string(char)
-					escaped = false
+				case escaped == 2 || (escaped == 1  && (char == '"' || char == '$' || char =='\n' || char == '\\')):
+					curr_sub_str.WriteRune(char)
+					escaped = 0
+				case escaped == 1:
+					curr_sub_str.WriteRune('\\')
+					curr_sub_str.WriteRune(char)
+					escaped = 0
 				case char == '\\' && !in_double_qoutes && !in_single_quotes:
-					escaped = true
+					escaped = 2
+				case char == '\\' && in_double_qoutes && !in_single_quotes:
+					escaped = 1
 				case char == '"'  && !in_single_quotes:
 					in_double_qoutes = !in_double_qoutes
 				case char == '\'' && !in_double_qoutes:
 					in_single_quotes = !in_single_quotes // Toggle quote state
 				case char == ' ' && !in_single_quotes && !in_double_qoutes:
-					if len(curr_sub_str) > 0 {
-						args_list = append(args_list, curr_sub_str)
-						curr_sub_str = ""
+					if curr_sub_str.Len() > 0 {
+						args_list = append(args_list, curr_sub_str.String())
+						curr_sub_str.Reset()
 					}
 				default:
-					curr_sub_str += string(char)
+					curr_sub_str.WriteRune(char)
 			}
 		}
 
-		if len(curr_sub_str) > 0 {
-			args_list = append(args_list, curr_sub_str)
+		if curr_sub_str.Len() > 0 {
+			args_list = append(args_list, curr_sub_str.String())
 		}
 	}
 
