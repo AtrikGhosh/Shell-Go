@@ -24,29 +24,37 @@ func parseCmd(str string) Command {
 	name := parts[0]
 	var args_list []string 
 	if len(parts) > 1 {
-		argStr := parts[1] + " "
+		arg_str := parts[1] + " "
+		var char byte
 		var curr_sub_str string
 		in_single_quotes := false
 		in_double_qoutes := false
-		for _, char := range argStr {
+		curr_idx := 0
+		
+		for curr_idx < len(arg_str) {
+			char = arg_str[curr_idx]
 			switch {
-			case char == '"':
-				in_double_qoutes = !in_double_qoutes
-			case char == '\'' && !in_double_qoutes:
-				in_single_quotes = !in_single_quotes // Toggle quote state
-			case char == ' ' && !in_single_quotes && !in_double_qoutes:
-				if len(curr_sub_str) > 0 {
-					args_list = append(args_list, curr_sub_str)
-					curr_sub_str = ""
-				}
-			default:
-				curr_sub_str += string(char)
+				case char == '"':
+					in_double_qoutes = !in_double_qoutes
+				case char == '\'' && !in_double_qoutes:
+					in_single_quotes = !in_single_quotes // Toggle quote state
+				case char == '\\' && !in_double_qoutes && !in_single_quotes:
+					curr_idx += 1
+					curr_sub_str += string(arg_str[curr_idx])
+				case char == ' ' && !in_single_quotes && !in_double_qoutes:
+					if len(curr_sub_str) > 0 {
+						args_list = append(args_list, curr_sub_str)
+						curr_sub_str = ""
+					}
+				default:
+					curr_sub_str += string(char)
 			}
+			curr_idx += 1
 		}
 
-		if len(curr_sub_str) > 0 {
-			args_list = append(args_list, curr_sub_str)
-		}
+		// if len(curr_sub_str) > 0 {
+		// 	args_list = append(args_list, curr_sub_str)
+		// }
 	}
 
 
