@@ -35,9 +35,9 @@ func parseCmd(str string) Command {
 				case escaped:
 					curr_sub_str += string(char)
 					escaped = false
-				case char == '\\':
+				case char == '\\' && !in_double_qoutes && !in_single_quotes:
 					escaped = true
-				case char == '"':
+				case char == '"'  && !in_single_quotes:
 					in_double_qoutes = !in_double_qoutes
 				case char == '\'' && !in_double_qoutes:
 					in_single_quotes = !in_single_quotes // Toggle quote state
