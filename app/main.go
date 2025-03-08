@@ -28,12 +28,12 @@ func parseCmd(str string) Command {
 		var curr_sub_str strings.Builder
 		in_single_quotes := false
 		in_double_qoutes := false
-		escaped := true
+		escaped := false
 		
 		for _,char := range arg_str {
 			switch {
 				case escaped:
-					if(in_double_qoutes && (char == '"' || char == '$' || char == '\\' || char == '\n')){
+					if (in_double_qoutes && (char != '"' && char != '$' && char != '\\' && char != '\n')){
 						curr_sub_str.WriteRune('\\')
 					}
 					curr_sub_str.WriteRune(char)
