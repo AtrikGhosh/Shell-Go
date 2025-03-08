@@ -29,7 +29,6 @@ func parseCmd(str string) Command {
 		in_single_quotes := false
 		in_double_qoutes := false
 		escaped := false
-		curr_idx := 0
 		
 		for _,char := range arg_str {
 			switch {
@@ -50,7 +49,6 @@ func parseCmd(str string) Command {
 				default:
 					curr_sub_str += string(char)
 			}
-			curr_idx += 1
 		}
 
 		if len(curr_sub_str) > 0 {
