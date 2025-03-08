@@ -28,21 +28,22 @@ func parseCmd(str string) Command {
 		var curr_sub_str strings.Builder
 		in_single_quotes := false
 		in_double_qoutes := false
-		escaped := 0 //0 = unescaped 1 = semi escaped 2 = escaped
+		escaped := true
 		
 		for _,char := range arg_str {
 			switch {
-				case escaped == 2 || (escaped == 1  && (char == '"' || char == '$' || char =='\n' || char == '\\')):
+				case escaped:
+					if(in_double_qoutes && (char == '"' || char == '$' || char == '\\' || char == '\n')){
+						curr_sub_str.WriteRune('\\')
+					}
 					curr_sub_str.WriteRune(char)
-					escaped = 0
-				case escaped == 1:
-					curr_sub_str.WriteRune('\\')
-					curr_sub_str.WriteRune(char)
-					escaped = 0
-				case char == '\\' && !in_double_qoutes && !in_single_quotes:
-					escaped = 2
-				case char == '\\' && in_double_qoutes && !in_single_quotes:
-					escaped = 1
+					escaped = false
+				case char == '\\':
+					if(in_single_quotes){
+						curr_sub_str.WriteRune(char)
+					}else{
+						escaped = true
+					}
 				case char == '"'  && !in_single_quotes:
 					in_double_qoutes = !in_double_qoutes
 				case char == '\'' && !in_double_qoutes:
