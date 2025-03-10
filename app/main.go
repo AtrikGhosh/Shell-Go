@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"strings"
 	"path/filepath"
+	"slices"
+	"strings"
 )
 
 // Ensures gofmt doesn't remove the "fmt" import in stage 1 (feel free to remove this!)
@@ -80,7 +81,16 @@ func main() {
 			case "exit":
 				os.Exit(0)
 			case "echo":
-				fmt.Println(strings.Join(cmd.args," "))
+				if idx := slices.IndexFunc(cmd.args,func(s string) bool {return s == ">" || s == "1>"}); idx != -1 {
+					args,filepath := cmd.args[:idx],cmd.args[idx+1]
+					err := os.WriteFile(filepath, []byte(strings.Join(args," ")), 0o777)
+					if err != nil {
+						fmt.Println("Error:", err)
+					}
+
+				}else{		
+					fmt.Println(strings.Join(cmd.args," "))
+				}
 			case "type":
 				arg := cmd.args[0]
 				if arg == "echo" || arg == "exit" || arg == "type" || arg == "pwd"{
@@ -113,15 +123,30 @@ func main() {
 				} else{
 					fmt.Println("Invalid Argument: No file or directory specified")
 				}	
-			default:	
+			default:
+				if idx := slices.IndexFunc(cmd.args,func(s string) bool {return s == ">" || s == "1>"}); idx != -1 {
+						args,filepath := cmd.args[:idx],cmd.args[idx+1]
+						command := exec.Command(cmd.name, args...)
+						command.Stdout = os.Stdout
+						command.Stderr = os.Stderr
+						output,err := command.CombinedOutput()
+						if err!=nil{
+							fmt.Println(cmd.name + ": command not found")
+						}
+						err = os.WriteFile(filepath, []byte(output), 0o777)
+						if err != nil {
+							fmt.Println("Error:", err)
+						}
+
+				}	
 				command := exec.Command(cmd.name, cmd.args...)
 				command.Stdout = os.Stdout
 				command.Stderr = os.Stderr
 
-				err := command.Run()
+				_,err := command.CombinedOutput()
 				if err!=nil{
 					fmt.Println(cmd.name + ": command not found")
-			}
+				}
 		}
 
 	}
