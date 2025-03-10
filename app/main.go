@@ -19,81 +19,48 @@ type Command struct {
 }
 
 
-func parseCmd(str string) Command {
-	parts := strings.SplitN(str," ",2)
-	name := parts[0]
-	var args_list []string 
-	if len(parts) > 1 {
-		arg_str := parts[1]
-		var curr_sub_str strings.Builder
-		in_single_quotes := false
-		in_double_qoutes := false
-		escaped := false
-		
-		for _,char := range arg_str {
-			switch {
-				case escaped:
-					if (in_double_qoutes && (char != '"' && char != '$' && char != '\\' && char != '\n')){
-						curr_sub_str.WriteRune('\\')
-					}
-					curr_sub_str.WriteRune(char)
-					escaped = false
-				case char == '\\':
-					if(in_single_quotes){
-						curr_sub_str.WriteRune(char)
-					}else{
-						escaped = true
-					}
-				case char == '"'  && !in_single_quotes:
-					in_double_qoutes = !in_double_qoutes
-				case char == '\'' && !in_double_qoutes:
-					in_single_quotes = !in_single_quotes // Toggle quote state
-				case char == ' ' && !in_single_quotes && !in_double_qoutes:
-					if curr_sub_str.Len() > 0 {
-						args_list = append(args_list, curr_sub_str.String())
-						curr_sub_str.Reset()
-					}
-				default:
-					curr_sub_str.WriteRune(char)
-			}
-		}
+func parseCmd(arg_str string) Command {
 
-		if curr_sub_str.Len() > 0 {
-			args_list = append(args_list, curr_sub_str.String())
+	var args_list []string 
+	var curr_sub_str strings.Builder
+	in_single_quotes := false
+	in_double_qoutes := false
+	escaped := false
+	
+	for _,char := range arg_str {
+		switch {
+			case escaped:
+				if (in_double_qoutes && (char != '"' && char != '$' && char != '\\' && char != '\n')){
+					curr_sub_str.WriteRune('\\')
+				}
+				curr_sub_str.WriteRune(char)
+				escaped = false
+			case char == '\\':
+				if(in_single_quotes){
+					curr_sub_str.WriteRune(char)
+				}else{
+					escaped = true
+				}
+			case char == '"'  && !in_single_quotes:
+				in_double_qoutes = !in_double_qoutes
+			case char == '\'' && !in_double_qoutes:
+				in_single_quotes = !in_single_quotes // Toggle quote state
+			case char == ' ' && !in_single_quotes && !in_double_qoutes:
+				if curr_sub_str.Len() > 0 {
+					args_list = append(args_list, curr_sub_str.String())
+					curr_sub_str.Reset()
+				}
+			default:
+				curr_sub_str.WriteRune(char)
 		}
 	}
 
-
-
-	// if len(parts)>1{
-	// 	arg_str := parts[1]+" "
-	// 	len_arg_str := len(arg_str)
-	// 	curr_sub_str := ""
-	// 	curr_idx := 0
-	// 	for curr_idx < len_arg_str{
-			
-	// 		if(arg_str[curr_idx] == '\''){
-	// 			end := curr_idx + 1 + strings.Index(arg_str[curr_idx+1:],"'")
-	// 			curr_sub_str += arg_str[curr_idx+1:end]
-	// 			curr_idx = end
-	// 		} else if arg_str[curr_idx] == ' '{
-	// 			if len(curr_sub_str)>0{
-	// 				args_list = append(args_list, curr_sub_str)
-	// 				curr_sub_str = ""
-	// 			}
-				
-	// 		} else{
-	// 			curr_sub_str += string(arg_str[curr_idx])
-	// 		}
-
-	// 		curr_idx += 1
-	// 	}
-	// 	if len(curr_sub_str) > 0{
-	// 		args_list = append(args_list, curr_sub_str)
-	// 	}
-
-
-	return Command{name, args_list}
+	if curr_sub_str.Len() > 0 {
+		args_list = append(args_list, curr_sub_str.String())
+	}
+	name := args_list[0]
+	args := args_list[1:]
+	return Command{name, args}
 }
 
 
