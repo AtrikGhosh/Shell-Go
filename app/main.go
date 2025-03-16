@@ -142,6 +142,7 @@ func main() {
 					command.Stderr = os.Stderr
 
 					err := command.Run()
+					fmt.Println()
 					if err!=nil{
 						fmt.Println(cmd.name + ": command not found")
 					}
