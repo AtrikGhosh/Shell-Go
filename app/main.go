@@ -130,6 +130,7 @@ func main() {
 						output,err := command.CombinedOutput()
 						if err!=nil{
 							fmt.Println(cmd.name +": nonexistent: No such file or directory")
+							break
 						}
 						err = os.WriteFile(filepath, []byte(output), 0o777)
 						if err != nil {
