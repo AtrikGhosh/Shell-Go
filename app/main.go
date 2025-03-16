@@ -127,8 +127,6 @@ func main() {
 				if idx := slices.IndexFunc(cmd.args,func(s string) bool {return s == ">" || s == "1>"}); idx != -1 {
 						args,filepath := cmd.args[:idx],cmd.args[idx+1]
 						command := exec.Command(cmd.name, args...)
-						command.Stdout = os.Stdout
-						command.Stderr = os.Stderr
 						output,err := command.CombinedOutput()
 						if err!=nil{
 							fmt.Println(cmd.name + ": command not found")
@@ -138,14 +136,15 @@ func main() {
 							fmt.Println("Error:", err)
 						}
 
-				}	
-				command := exec.Command(cmd.name, cmd.args...)
-				command.Stdout = os.Stdout
-				command.Stderr = os.Stderr
+				} else {
+					command := exec.Command(cmd.name, cmd.args...)
+					command.Stdout = os.Stdout
+					command.Stderr = os.Stderr
 
-				_,err := command.CombinedOutput()
-				if err!=nil{
-					fmt.Println(cmd.name + ": command not found")
+					err := command.Run()
+					if err!=nil{
+						fmt.Println(cmd.name + ": command not found")
+					}
 				}
 		}
 
