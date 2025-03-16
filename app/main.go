@@ -129,7 +129,7 @@ func main() {
 						command := exec.Command(cmd.name, args...)
 						output,err := command.CombinedOutput()
 						if err!=nil{
-							fmt.Println(cmd.name + ": No such file or directory")
+							fmt.Println(cmd.name +": "+filepath+ ": No such file or directory")
 						}
 						err = os.WriteFile(filepath, []byte(output), 0o777)
 						if err != nil {
