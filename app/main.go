@@ -16,6 +16,7 @@ var _ = fmt.Fprint
 
 type Command struct {
 	name string
+	flags []string
 	args []string
 }
 
@@ -60,8 +61,14 @@ func parseCmd(arg_str string) Command {
 		args_list = append(args_list, curr_sub_str.String())
 	}
 	name := args_list[0]
-	args := args_list[1:]
-	return Command{name, args}
+	i := 1
+	n := len(args_list)
+	for (i<n && args_list[i][0] == '-'){
+		i++
+	}
+	flags := args_list[1:i]
+	args := args_list[i:]
+	return Command{name,flags, args}
 }
 
 
@@ -82,8 +89,8 @@ func main() {
 				os.Exit(0)
 			case "echo":
 				if idx := slices.IndexFunc(cmd.args,func(s string) bool {return s == ">" || s == "1>"}); idx != -1 {
-					args,filepath := cmd.args[:idx],cmd.args[idx+1]
-					err := os.WriteFile(filepath, []byte(strings.Join(args," ")), 0o777)
+					text,filepath := cmd.args[:idx],cmd.args[idx+1]
+					err := os.WriteFile(filepath, []byte(strings.Join(text," ")), 0o777)
 					if err != nil {
 						fmt.Println("Error:", err)
 					}
@@ -125,14 +132,23 @@ func main() {
 				}	
 			default:
 				if idx := slices.IndexFunc(cmd.args,func(s string) bool {return s == ">" || s == "1>"}); idx != -1 {
-						args,filepath := cmd.args[:idx],cmd.args[idx+1]
-						command := exec.Command(cmd.name, args...)
+						src_files,dest_file := cmd.args[:idx],cmd.args[idx+1]
+						var validFiles []string
+						for _, file := range src_files {
+							if _, err := os.Stat(file); os.IsNotExist(err) {
+								fmt.Fprintf(os.Stderr, "%s: %s: No such file or directory\n", cmd.name, file)
+							} else {
+								validFiles = append(validFiles, file)
+							}
+						}
+
+						final_args := append(cmd.flags, validFiles...)
+						command := exec.Command(cmd.name, final_args...)
 						output,err := command.CombinedOutput()
 						if err!=nil{
-							fmt.Println(cmd.name +": nonexistent: No such file or directory")
-							break
+							fmt.Println(err)
 						}
-						err = os.WriteFile(filepath, []byte(output), 0o777)
+						err = os.WriteFile(dest_file, []byte(output), 0o777)
 						if err != nil {
 							fmt.Println("Error:", err)
 						}
