@@ -132,49 +132,28 @@ func main() {
 				}	
 			default:
 				if idx := slices.IndexFunc(cmd.args,func(s string) bool {return s == ">" || s == "1>"}); idx != -1 {
-						src_files,dest_file := cmd.args[:idx],cmd.args[idx+1]
-						var validFiles []string
-						for _, file := range src_files {
-							if _, err := os.Stat(file); os.IsNotExist(err) {
-								fmt.Fprintf(os.Stderr, "%s: %s: No such file or directory\n", cmd.name, file)
-							} else {
-								validFiles = append(validFiles, file)
-							}
-						}
-
-						final_args := append(cmd.flags, validFiles...)
-						command := exec.Command(cmd.name, final_args...)
-						output,err := command.CombinedOutput()
-						if err!=nil{
-							fmt.Println(err)
-						}
-						err = os.WriteFile(dest_file, []byte(output), 0o777)
-						if err != nil {
-							fmt.Println("Error:", err)
-						}
+					src_files,dest_file := cmd.args[:idx],cmd.args[idx+1]
+					file,err := os.OpenFile(dest_file, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+					if err != nil {
+						fmt.Println("Error opening destination file:", err)
+					}
+					final_args := append(cmd.flags, src_files...)
+					command := exec.Command(cmd.name, final_args...)
+					command.Stdout = file
+					err = command.Run()
+					if err!=nil{
+						fmt.Println(err)
+					}
 				} else if idx := slices.Index(cmd.args,"2>"); idx != -1 {
 					src_files,dest_file := cmd.args[:idx],cmd.args[idx+1]
-					var validFiles []string
-					for _, file := range src_files {
-						if _, err := os.Stat(file); os.IsNotExist(err) {
-							err = os.WriteFile(dest_file, []byte(fmt.Sprintf("%s: %s: No such file or directory\n", cmd.name, file)), 0o777)
-							if err != nil {
-								fmt.Println("Error:", err)
-							}
-						} else {
-							validFiles = append(validFiles, file)
-						}
+					file,err := os.OpenFile(dest_file, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+					if err != nil {
+						fmt.Println("Error opening destination file:", err)
 					}
-					final_args := append(cmd.flags, validFiles...)
-					command := exec.Command(cmd.name, final_args...)
-					command.Stdout = os.Stdout
-					err := command.Run()
-					if err!=nil{
-						err = os.WriteFile(dest_file, []byte(err.Error()), 0o777)
-						if err != nil {
-							fmt.Println("Error:", err)
-						}
-					}
+					final_args := append(cmd.flags,src_files...)
+					command := exec.Command(cmd.name,final_args...)
+					command.Stderr = file
+					command.Run()
 				} else {
 					final_args := append(cmd.flags,cmd.args...)
 					command := exec.Command(cmd.name, final_args...)
@@ -183,9 +162,6 @@ func main() {
 					err := command.Run()
 					if err!=nil{
 						fmt.Println(cmd.name + ": command not found")
-					// }else{
-					// 	stdOut := strings.Trim(string(output),"\r\n")
-					// 	fmt.Fprintln(os.Stdout,stdOut)
 					}
 				}
 		}
