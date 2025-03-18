@@ -158,10 +158,7 @@ func main() {
 					command := exec.Command(cmd.name, final_args...)
 					command.Stdout = file
 					command.Stderr = os.Stderr
-					err = command.Run()
-					if err!=nil{
-						fmt.Println(err)
-					}
+					command.Run()
 					file.Close()
 				} else if idx := slices.Index(cmd.args,"2>"); idx != -1 {
 					src_files,dest_file := cmd.args[:idx],cmd.args[idx+1]
