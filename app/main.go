@@ -156,10 +156,11 @@ func main() {
 				} else {
 					command := exec.Command(cmd.name, cmd.args...)
 					output, err := command.Output()
-					stdOut := strings.Trim(string(output),"\r\n")
-					fmt.Fprintln(os.Stdout,stdOut)
 					if err!=nil{
 						fmt.Println(cmd.name + ": command not found")
+					}else{
+						stdOut := strings.Trim(string(output),"\r\n")
+						fmt.Fprintln(os.Stdout,stdOut)
 					}
 				}
 		}
