@@ -106,7 +106,7 @@ func main() {
 					if err != nil {
 						fmt.Println("Error opening destination file:", err)
 					}
-					_,err = fmt.Println(strings.Join(cmd.args," "))
+					_,err = fmt.Println(strings.Join(text," "))
 					if err != nil {
 						os.WriteFile(filepath, []byte(strings.Join(text," ")), 0o777)
 					}
