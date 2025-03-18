@@ -152,7 +152,6 @@ func main() {
 						if err != nil {
 							fmt.Println("Error:", err)
 						}
-
 				} else if idx := slices.Index(cmd.args,"2>"); idx != -1 {
 					src_files,dest_file := cmd.args[:idx],cmd.args[idx+1]
 					var validFiles []string
@@ -166,9 +165,9 @@ func main() {
 							validFiles = append(validFiles, file)
 						}
 					}
-
 					final_args := append(cmd.flags, validFiles...)
 					command := exec.Command(cmd.name, final_args...)
+					command.Stdout = os.Stdout
 					err := command.Run()
 					if err!=nil{
 						err = os.WriteFile(dest_file, []byte(err.Error()), 0o777)
@@ -176,13 +175,12 @@ func main() {
 							fmt.Println("Error:", err)
 						}
 					}
-					
-
 				} else {
-					command := exec.Command(cmd.name, cmd.args...)
-					err := command.Run()
+					final_args := append(cmd.flags,cmd.args...)
+					command := exec.Command(cmd.name, final_args...)
 					command.Stdout = os.Stdout
 					command.Stderr = os.Stderr
+					err := command.Run()
 					if err!=nil{
 						fmt.Println(cmd.name + ": command not found")
 					// }else{
