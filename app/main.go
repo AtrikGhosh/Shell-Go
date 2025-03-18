@@ -83,19 +83,36 @@ func main() {
 
 		input,_ := reader.ReadString('\n')
 		cmd := parseCmd(strings.TrimSpace(input))
-
+		
 		switch cmd.name{
 			case "exit":
 				os.Exit(0)
 			case "echo":
 				if idx := slices.IndexFunc(cmd.args,func(s string) bool {return s == ">" || s == "1>"}); idx != -1 {
 					text,filepath := cmd.args[:idx],cmd.args[idx+1]
-					err := os.WriteFile(filepath, []byte(strings.Join(text," ")), 0o777)
+					file,err := os.OpenFile(filepath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+					if err != nil {
+						fmt.Println("Error opening destination file:", err)
+					}
+					err = os.WriteFile(filepath, []byte(strings.Join(text," ")), 0o777)
 					if err != nil {
 						fmt.Println("Error:", err)
 					}
+					file.Close()
 
-				}else{		
+				} else if idx := slices.Index(cmd.args,"2>"); idx != -1 {
+					text,filepath := cmd.args[:idx],cmd.args[idx+1]
+					file,err := os.OpenFile(filepath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+					if err != nil {
+						fmt.Println("Error opening destination file:", err)
+					}
+					_,err = fmt.Println(strings.Join(cmd.args," "))
+					if err != nil {
+						os.WriteFile(filepath, []byte(strings.Join(text," ")), 0o777)
+					}
+					file.Close()
+
+				} else {		
 					fmt.Println(strings.Join(cmd.args," "))
 				}
 			case "type":
@@ -140,10 +157,12 @@ func main() {
 					final_args := append(cmd.flags, src_files...)
 					command := exec.Command(cmd.name, final_args...)
 					command.Stdout = file
+					command.Stderr = os.Stderr
 					err = command.Run()
 					if err!=nil{
 						fmt.Println(err)
 					}
+					file.Close()
 				} else if idx := slices.Index(cmd.args,"2>"); idx != -1 {
 					src_files,dest_file := cmd.args[:idx],cmd.args[idx+1]
 					file,err := os.OpenFile(dest_file, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
@@ -152,8 +171,10 @@ func main() {
 					}
 					final_args := append(cmd.flags,src_files...)
 					command := exec.Command(cmd.name,final_args...)
+					command.Stdout = os.Stdout
 					command.Stderr = file
 					command.Run()
+					file.Close()
 				} else {
 					final_args := append(cmd.flags,cmd.args...)
 					command := exec.Command(cmd.name, final_args...)
