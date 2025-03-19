@@ -141,9 +141,9 @@ func main() {
 					if err != nil {
 						fmt.Println("Error opening destination file:", err)
 					}
-					_,err = fmt.Println(strings.Join(text," "))
+					err = os.WriteFile(filepath, []byte(strings.Trim(strings.Join(text," "),"\r\n")+"\n"), 0o777)
 					if err != nil {
-						os.WriteFile(filepath, []byte(err.Error()), 0o777)
+						fmt.Println("Error:", err)
 					}
 					file.Close()
 
