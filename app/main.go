@@ -1,3 +1,5 @@
+// TO DO - OPTIMIZEEEEE
+
 package main
 
 import (
@@ -16,7 +18,6 @@ var _ = fmt.Fprint
 
 type Command struct {
 	name string
-	flags []string
 	args []string
 }
 
@@ -61,14 +62,8 @@ func parseCmd(arg_str string) Command {
 		args_list = append(args_list, curr_sub_str.String())
 	}
 	name := args_list[0]
-	i := 1
-	n := len(args_list)
-	for (i<n && args_list[i][0] == '-'){
-		i++
-	}
-	flags := args_list[1:i]
-	args := args_list[i:]
-	return Command{name,flags, args}
+	args := args_list[1:]
+	return Command{name, args}
 }
 
 
@@ -149,32 +144,29 @@ func main() {
 				}	
 			default:
 				if idx := slices.IndexFunc(cmd.args,func(s string) bool {return s == ">" || s == "1>"}); idx != -1 {
-					src_files,dest_file := cmd.args[:idx],cmd.args[idx+1]
+					final_args,dest_file := cmd.args[:idx],cmd.args[idx+1]
 					file,err := os.OpenFile(dest_file, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 					if err != nil {
 						fmt.Println("Error opening destination file:", err)
 					}
-					final_args := append(cmd.flags, src_files...)
 					command := exec.Command(cmd.name, final_args...)
 					command.Stdout = file
 					command.Stderr = os.Stderr
 					command.Run()
 					file.Close()
 				} else if idx := slices.Index(cmd.args,"2>"); idx != -1 {
-					src_files,dest_file := cmd.args[:idx],cmd.args[idx+1]
+					final_args,dest_file := cmd.args[:idx],cmd.args[idx+1]
 					file,err := os.OpenFile(dest_file, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 					if err != nil {
 						fmt.Println("Error opening destination file:", err)
 					}
-					final_args := append(cmd.flags,src_files...)
 					command := exec.Command(cmd.name,final_args...)
 					command.Stdout = os.Stdout
 					command.Stderr = file
 					command.Run()
 					file.Close()
 				} else {
-					final_args := append(cmd.flags,cmd.args...)
-					command := exec.Command(cmd.name, final_args...)
+					command := exec.Command(cmd.name, cmd.args...)
 					command.Stdout = os.Stdout
 					command.Stderr = os.Stderr
 					err := command.Run()
