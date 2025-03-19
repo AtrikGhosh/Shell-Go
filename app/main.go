@@ -117,7 +117,7 @@ func main() {
 					if err != nil {
 						fmt.Println("Error opening destination file:", err)
 					}
-					err = os.WriteFile(filepath, []byte(strings.Trim(strings.Join(text," "),"\r\n")+"\n"), 0o777)
+					_,err = file.WriteString(strings.Trim(strings.Join(text," "),"\r\n")+"\n")
 					if err != nil {
 						fmt.Println("Error:", err)
 					}
@@ -131,7 +131,7 @@ func main() {
 					}
 					_,err = fmt.Println(strings.Join(text," "))
 					if err != nil {
-						os.WriteFile(filepath, []byte(err.Error()), 0o777)
+						file.WriteString(err.Error())
 					}
 					file.Close()
 
@@ -141,7 +141,7 @@ func main() {
 					if err != nil {
 						fmt.Println("Error opening destination file:", err)
 					}
-					err = os.WriteFile(filepath, []byte(strings.Trim(strings.Join(text," "),"\r\n")+"\n"), 0o777)
+					_,err = file.WriteString(strings.Trim(strings.Join(text," "),"\r\n")+"\n")
 					if err != nil {
 						fmt.Println("Error:", err)
 					}
