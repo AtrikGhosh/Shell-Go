@@ -61,12 +61,12 @@ func parseCmd(arg_str string) Command {
 	return Command{name, args}
 }
 
-func handleRedirection(cmd Command, redirectIdx int) {
+func handleRedirection(cmd Command, redirectIdx int, redirectType string, writeMode int) {
 	finalArgs, destFile := cmd.args[:redirectIdx], cmd.args[redirectIdx+1]
-	redirectType := cmd.args[redirectIdx]
+	writeFlags := os.O_WRONLY|os.O_CREATE|writeMode
 	command := exec.Command(cmd.name, finalArgs...)
 	if redirectType == ">" || redirectType == "1>" {
-		file, err := os.OpenFile(destFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+		file, err := os.OpenFile(destFile, writeFlags, 0644)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Error opening destination file:", err)
 			return
@@ -75,7 +75,7 @@ func handleRedirection(cmd Command, redirectIdx int) {
 		command.Stdout = file
 		command.Stderr = os.Stderr
 	} else if redirectType == "2>" {
-		file, err := os.OpenFile(destFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+		file, err := os.OpenFile(destFile, writeFlags, 0644)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Error opening destination file:", err)
 			return
@@ -84,7 +84,7 @@ func handleRedirection(cmd Command, redirectIdx int) {
 		command.Stdout = os.Stdout
 		command.Stderr = file
 	} else if redirectType == ">>" || redirectType == "1>>" {
-		file, err := os.OpenFile(destFile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+		file, err := os.OpenFile(destFile, writeFlags, 0644)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Error opening destination file:", err)
 			return
@@ -93,7 +93,7 @@ func handleRedirection(cmd Command, redirectIdx int) {
 		command.Stdout = file
 		command.Stderr = os.Stderr
 	} else if redirectType == "2>>" {
-		file, err := os.OpenFile(destFile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+		file, err := os.OpenFile(destFile, writeFlags, 0644)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Error opening destination file:", err)
 			return
@@ -204,8 +204,14 @@ func main() {
 					fmt.Println("Invalid Argument: No file or directory specified")
 				}	
 			default:
-				if idx := slices.IndexFunc(cmd.args, func(s string) bool { return s == ">" || s == "1>" || s== "2>" || s== ">>" || s=="1>>" || s=="2>>"}); idx != -1 {
-					handleRedirection(cmd, idx)
+				if idx := slices.IndexFunc(cmd.args, func(s string) bool { return s == ">" || s == "1>"}); idx != -1 {
+					handleRedirection(cmd, idx, cmd.args[idx], os.O_TRUNC)
+				} else if idx := slices.Index(cmd.args,"2>"); idx != -1 {
+					handleRedirection(cmd, idx, cmd.args[idx], os.O_TRUNC)
+				} else if idx := slices.IndexFunc(cmd.args, func(s string) bool { return s== ">>" || s=="1>>"}); idx != -1 {
+					handleRedirection(cmd, idx, cmd.args[idx], os.O_APPEND)
+				} else if idx := slices.Index(cmd.args,"2>>"); idx != -1 {
+					handleRedirection(cmd, idx, cmd.args[idx], os.O_APPEND)
 				} else {
 					command := exec.Command(cmd.name, cmd.args...)
 					command.Stdout = os.Stdout
