@@ -92,6 +92,15 @@ func handleRedirection(cmd Command, redirectIdx int) {
 		defer file.Close()
 		command.Stdout = file
 		command.Stderr = os.Stderr
+	} else if redirectType == "2>>" {
+		file, err := os.OpenFile(destFile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Error opening destination file:", err)
+			return
+		}
+		defer file.Close()
+		command.Stdout = os.Stdout
+		command.Stderr = file
 	}
 	command.Run()
 }
@@ -144,6 +153,18 @@ func main() {
 					_,err = file.WriteString(strings.Trim(strings.Join(text," "),"\r\n")+"\n")
 					if err != nil {
 						fmt.Println("Error:", err)
+					}
+					file.Close()
+
+				} else if idx := slices.Index(cmd.args,"2>>"); idx != -1 {
+					text,filepath := cmd.args[:idx],cmd.args[idx+1]
+					file,err := os.OpenFile(filepath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+					if err != nil {
+						fmt.Println("Error opening destination file:", err)
+					}
+					_,err = fmt.Println(strings.Join(text," "))
+					if err != nil {
+						file.WriteString(err.Error())
 					}
 					file.Close()
 
