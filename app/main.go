@@ -12,15 +12,10 @@ import (
 	"strings"
 )
 
-// Ensures gofmt doesn't remove the "fmt" import in stage 1 (feel free to remove this!)
-var _ = fmt.Fprint
-
-
 type Command struct {
 	name string
 	args []string
 }
-
 
 func parseCmd(arg_str string) Command {
 
@@ -47,7 +42,7 @@ func parseCmd(arg_str string) Command {
 			case char == '"'  && !in_single_quotes:
 				in_double_qoutes = !in_double_qoutes
 			case char == '\'' && !in_double_qoutes:
-				in_single_quotes = !in_single_quotes // Toggle quote state
+				in_single_quotes = !in_single_quotes
 			case char == ' ' && !in_single_quotes && !in_double_qoutes:
 				if curr_sub_str.Len() > 0 {
 					args_list = append(args_list, curr_sub_str.String())
@@ -66,7 +61,26 @@ func parseCmd(arg_str string) Command {
 	return Command{name, args}
 }
 
+func handleRedirection(cmd Command, redirectIdx int) {
+	finalArgs, destFile := cmd.args[:redirectIdx], cmd.args[redirectIdx+1]
+	redirectType := cmd.args[redirectIdx]
+	file, err := os.OpenFile(destFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error opening destination file:", err)
+		return
+	}
+	defer file.Close()
 
+	command := exec.Command(cmd.name, finalArgs...)
+	if redirectType == ">" || redirectType == "1>" {
+		command.Stdout = file
+		command.Stderr = os.Stderr
+	} else if redirectType == "2>" {
+		command.Stdout = os.Stdout
+		command.Stderr = file
+	}
+	command.Run()
+}
 
 func main() {
 
@@ -112,8 +126,8 @@ func main() {
 				}
 			case "type":
 				arg := cmd.args[0]
-				if arg == "echo" || arg == "exit" || arg == "type" || arg == "pwd"{
-					fmt.Println(cmd.args[0] + " is a shell builtin")
+				if slices.Contains([]string{"echo", "exit", "type", "pwd", "cd"}, arg){
+					fmt.Println(arg + " is a shell builtin")
 				} else if path,err := exec.LookPath(arg);err == nil{
 					fmt.Println(arg + " is " + path)
 				}else {
@@ -143,28 +157,8 @@ func main() {
 					fmt.Println("Invalid Argument: No file or directory specified")
 				}	
 			default:
-				if idx := slices.IndexFunc(cmd.args,func(s string) bool {return s == ">" || s == "1>"}); idx != -1 {
-					final_args,dest_file := cmd.args[:idx],cmd.args[idx+1]
-					file,err := os.OpenFile(dest_file, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
-					if err != nil {
-						fmt.Println("Error opening destination file:", err)
-					}
-					command := exec.Command(cmd.name, final_args...)
-					command.Stdout = file
-					command.Stderr = os.Stderr
-					command.Run()
-					file.Close()
-				} else if idx := slices.Index(cmd.args,"2>"); idx != -1 {
-					final_args,dest_file := cmd.args[:idx],cmd.args[idx+1]
-					file,err := os.OpenFile(dest_file, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
-					if err != nil {
-						fmt.Println("Error opening destination file:", err)
-					}
-					command := exec.Command(cmd.name,final_args...)
-					command.Stdout = os.Stdout
-					command.Stderr = file
-					command.Run()
-					file.Close()
+				if idx := slices.IndexFunc(cmd.args, func(s string) bool { return s == ">" || s == "1>" || s== "2>"}); idx != -1 {
+					handleRedirection(cmd, idx)
 				} else {
 					command := exec.Command(cmd.name, cmd.args...)
 					command.Stdout = os.Stdout
