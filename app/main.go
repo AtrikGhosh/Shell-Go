@@ -204,7 +204,7 @@ func main() {
 					fmt.Println("Invalid Argument: No file or directory specified")
 				}	
 			default:
-				if idx := slices.IndexFunc(cmd.args, func(s string) bool { return s == ">" || s == "1>" || s== "2>" || s== ">>" || s=="1>>"}); idx != -1 {
+				if idx := slices.IndexFunc(cmd.args, func(s string) bool { return s == ">" || s == "1>" || s== "2>" || s== ">>" || s=="1>>" || s=="2>>"}); idx != -1 {
 					handleRedirection(cmd, idx)
 				} else {
 					command := exec.Command(cmd.name, cmd.args...)
