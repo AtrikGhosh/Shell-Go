@@ -64,20 +64,34 @@ func parseCmd(arg_str string) Command {
 func handleRedirection(cmd Command, redirectIdx int) {
 	finalArgs, destFile := cmd.args[:redirectIdx], cmd.args[redirectIdx+1]
 	redirectType := cmd.args[redirectIdx]
-	file, err := os.OpenFile(destFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error opening destination file:", err)
-		return
-	}
-	defer file.Close()
-
 	command := exec.Command(cmd.name, finalArgs...)
 	if redirectType == ">" || redirectType == "1>" {
+		file, err := os.OpenFile(destFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Error opening destination file:", err)
+			return
+		}
+		defer file.Close()
 		command.Stdout = file
 		command.Stderr = os.Stderr
 	} else if redirectType == "2>" {
+		file, err := os.OpenFile(destFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Error opening destination file:", err)
+			return
+		}
+		defer file.Close()
 		command.Stdout = os.Stdout
 		command.Stderr = file
+	} else if redirectType == ">>" || redirectType == "1>>" {
+		file, err := os.OpenFile(destFile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Error opening destination file:", err)
+			return
+		}
+		defer file.Close()
+		command.Stdout = file
+		command.Stderr = os.Stderr
 	}
 	command.Run()
 }
@@ -112,6 +126,18 @@ func main() {
 				} else if idx := slices.Index(cmd.args,"2>"); idx != -1 {
 					text,filepath := cmd.args[:idx],cmd.args[idx+1]
 					file,err := os.OpenFile(filepath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+					if err != nil {
+						fmt.Println("Error opening destination file:", err)
+					}
+					_,err = fmt.Println(strings.Join(text," "))
+					if err != nil {
+						os.WriteFile(filepath, []byte(err.Error()), 0o777)
+					}
+					file.Close()
+
+				} else if idx := slices.IndexFunc(cmd.args,func(s string) bool {return s == ">>" || s == "1>>"}); idx != -1 {
+					text,filepath := cmd.args[:idx],cmd.args[idx+1]
+					file,err := os.OpenFile(filepath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
 					if err != nil {
 						fmt.Println("Error opening destination file:", err)
 					}
@@ -157,7 +183,7 @@ func main() {
 					fmt.Println("Invalid Argument: No file or directory specified")
 				}	
 			default:
-				if idx := slices.IndexFunc(cmd.args, func(s string) bool { return s == ">" || s == "1>" || s== "2>"}); idx != -1 {
+				if idx := slices.IndexFunc(cmd.args, func(s string) bool { return s == ">" || s == "1>" || s== "2>" || s== ">>" || s=="1>>"}); idx != -1 {
 					handleRedirection(cmd, idx)
 				} else {
 					command := exec.Command(cmd.name, cmd.args...)
