@@ -1,5 +1,3 @@
-// TO DO - OPTIMIZEEEEE
-
 package main
 
 import (
