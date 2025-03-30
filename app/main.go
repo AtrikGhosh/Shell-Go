@@ -144,36 +144,39 @@ func readInput(ioReader io.Reader) (input string){
 					if currPos >= 0 {
 						input = input[:currPos] + input[currPos+1:]
 						currPos-=1
-						tab_flag = false
 						rewrite(input,currPos)
+						tab_flag = false
 					}
 
 				case '\t': //Tab - autocomplete
-					suggestions:= autocomplete(input)
-					if len(suggestions) == 1 {
-						suggestion := suggestions[0]
-						if suggestion != input {
-							input += suggestion
+					suffixes:= autocomplete(input)
+					if len(suffixes) == 1 {
+						suffix := suffixes[0]
+						if suffix != "" {
+							input += suffix + " "
+							fmt.Print(suffix+" ")
 							currPos = len(input)-1
-							rewrite(input,currPos)
 						}
-					} else if len(suggestions) > 1 {
+					} else if len(suffixes) > 1 {
 						if tab_flag {
-							sort.Strings(suggestions)
-							fmt.Print("\r\n"+strings.Join(suggestions,"  ") + "\r\n$ "+input)
+							sort.Strings(suffixes)
+							for i,suffix := range(suffixes){
+								suffixes[i] = input+suffix
+							}
+							fmt.Print("\r\n"+strings.Join(suffixes,"  ") + "\r\n$ "+input)
 							tab_flag = false
 						} else {
-							sort.Strings(suggestions)
-							first_suggest := suggestions[0]
-							last_suggest := suggestions[len(suggestions)-1]
-							min_len := min(len(first_suggest),len(last_suggest))
-							common_suffix_index := len(input)
-							for common_suffix_index<min_len && first_suggest[common_suffix_index] == last_suggest[common_suffix_index] {
+							sort.Strings(suffixes)
+							first_suffix := suffixes[0]
+							last_suffix := suffixes[len(suffixes)-1]
+							min_len := min(len(first_suffix),len(last_suffix))
+							common_suffix_index := 0
+							for common_suffix_index<min_len && first_suffix[common_suffix_index] == last_suffix[common_suffix_index] {
 								common_suffix_index += 1
 							}
-							if(common_suffix_index>len(input)){
-								fmt.Print(first_suggest[len(input):common_suffix_index])
-								input += first_suggest[len(input):common_suffix_index]
+							if(common_suffix_index>0){
+								input += first_suffix[:common_suffix_index]
+								fmt.Print(first_suffix[:common_suffix_index])
 								currPos = len(input)-1
 							} else {
 								fmt.Print(("\a"))
@@ -206,9 +209,8 @@ func readInput(ioReader io.Reader) (input string){
 				default:
 					input = input[:currPos+1] + string(char) + input[currPos+1:]
 					currPos += 1
-					tab_flag = false
+					tab_flag =false
 					rewrite(input,currPos)
-
 			}
 		}
 		
@@ -219,13 +221,14 @@ func rewrite(input string, currPos int){
 	fmt.Print("\r\033[K$ ",input)
 	fmt.Printf("\033[%dG",4 + currPos)
 }
-func autocomplete(prefix string) (suggestions []string) {
+func autocomplete(prefix string) (suffixes []string) {
 	if prefix == "" {
 		return
 	}
-	for _, cmd := range builtinCMDs {
-		if strings.HasPrefix(cmd, prefix) && !slices.Contains(suggestions,cmd){
-			suggestions = append(suggestions, cmd)
+	for _, v := range builtinCMDs {
+		after, found := strings.CutPrefix(v, prefix)
+		if found && !slices.Contains(suffixes,after){
+			suffixes = append(suffixes, after)
 		}
 	}
 	path := os.Getenv("PATH")
@@ -237,14 +240,15 @@ func autocomplete(prefix string) (suggestions []string) {
 				if file.IsDir() {
 					continue
 				} else{
-					if strings.HasPrefix(file.Name(), prefix) && !slices.Contains(suggestions,file.Name()){
-						suggestions = append(suggestions, file.Name())
+					after, found := strings.CutPrefix(file.Name(), prefix)
+					if found && !slices.Contains(suffixes,after){
+						suffixes = append(suffixes, after)
 					}
 				}
 			}
 		}
 	}
-	return suggestions
+	return suffixes
 }
 
 func main() {
