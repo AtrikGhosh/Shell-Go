@@ -178,16 +178,23 @@ func autocomplete(prefix string) (suffix string) {
 			suffixes = append(suffixes, after)
 		}
 	}
-	pathVar := os.Getenv("PATH")
-	pathDirs := strings.Split(pathVar,":")
-
-	for _, v := range pathDirs {
-		after, found := strings.CutPrefix(v, prefix)
-		if found {
-			suffixes = append(suffixes, after)
+	path := os.Getenv("PATH")
+	directories := strings.Split(path, ":")
+	for _, directory := range directories {
+		files, err := os.ReadDir(directory)
+		if err == nil {
+			for _, file := range files {
+				if file.IsDir() {
+					continue
+				} else{
+					after, found := strings.CutPrefix(file.Name(), prefix)
+					if found {
+						suffixes = append(suffixes, after)
+					}
+				}
+			}
 		}
 	}
-
 	if len(suffixes) == 0{
 		fmt.Print("\a")
 	} else if len(suffixes) == 1 {
