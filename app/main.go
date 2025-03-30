@@ -150,10 +150,11 @@ func readInput(ioReader io.Reader) (input string){
 					if suffix != "" {
 						input += suffix + " "
 						fmt.Fprint(os.Stdout, suffix+" ")
+						currPos = len(input)-1
 					}
 
 				case 27:
-					// todo : arrow + tab
+					// todo : arrow
 				
 				default:
 					input += string(char)
@@ -177,6 +178,16 @@ func autocomplete(prefix string) (suffix string) {
 			suffixes = append(suffixes, after)
 		}
 	}
+	pathVar := os.Getenv("PATH")
+	pathDirs := strings.Split(pathVar,":")
+
+	for _, v := range pathDirs {
+		after, found := strings.CutPrefix(v, prefix)
+		if found {
+			suffixes = append(suffixes, after)
+		}
+	}
+
 	if len(suffixes) == 0{
 		fmt.Print("\a")
 	} else if len(suffixes) == 1 {
@@ -211,7 +222,7 @@ func main() {
 				}
 			case "type":
 				arg := cmd.args[0]
-				if slices.Contains([]string{"echo", "exit", "type", "pwd", "cd"}, arg){
+				if slices.Contains(builtinCMDs, arg){
 					fmt.Println(arg + " is a shell builtin")
 				} else if path,err := exec.LookPath(arg);err == nil{
 					fmt.Println(arg + " is " + path)
