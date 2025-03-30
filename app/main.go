@@ -149,7 +149,7 @@ func readInput(ioReader io.Reader) (input string){
 				suffix := autocomplete(input)
 					if suffix != "" {
 						input += suffix + " "
-						fmt.Fprint(os.Stdout, suffix+" ")
+						fmt.Print(suffix+" ")
 						currPos = len(input)-1
 					}
 
