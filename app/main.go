@@ -5,12 +5,23 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"slices"
 	"strings"
+
+	"golang.org/x/term"
 )
+
+var builtinCMDs = []string{
+	"exit",
+	"echo",
+	"type",
+	"pwd",
+	"cd",
+}
 
 type Command struct {
 	name string
@@ -101,15 +112,70 @@ func handleEchoRedirection(args []string,  redirectIdx int, redirectType string,
 	}
 }
 
-func main() {
+func readInput(rd io.Reader) (input string) {
+	oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
+	if err != nil {
+		panic(err)
+	}
+	defer term.Restore(int(os.Stdin.Fd()), oldState)
+	r := bufio.NewReader(rd)
+	
+loop:
+	for {
+		c, _, err := r.ReadRune()
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		switch c {
+		case '\x03': // Ctrl+C
+			os.Exit(0)
+		case '\r', '\n': // Enter
+			fmt.Fprint(os.Stdout, "\r\n")
+			break loop
+		case '\x7F': // Backspace
+			if length := len(input); length > 0 {
+				input = input[:length-1]
+				fmt.Fprint(os.Stdout, "\b \b")
+			}
+		case '\t': // Tab
+			suffix := autocomplete(input)
+			if suffix != "" {
+				input += suffix + " "
+				fmt.Fprint(os.Stdout, suffix+" ")
+			}
+		default:
+			input += string(c)
+			fmt.Fprint(os.Stdout, string(c))
+		}
+	}
+	return
+}
 
-	// Wait for user input
-	reader := bufio.NewReader(os.Stdin)
+func autocomplete(prefix string) (suffix string) {
+	if prefix == "" {
+		return
+	}
+	suffixes := []string{}
+	for _, v := range builtinCMDs {
+		after, found := strings.CutPrefix(v, prefix)
+		if found {
+			suffixes = append(suffixes, after)
+		}
+	}
+	if len(suffixes) == 1 {
+		return suffixes[0]
+	}
+	return
+}
+
+func main() {
+	
 
 	for{
-		fmt.Fprint(os.Stdout, "$ ")
-
-		input,_ := reader.ReadString('\n')
+		
+		fmt.Print("$ ")
+		input := readInput(os.Stdin)
 		cmd := parseCmd(strings.TrimSpace(input))
 		
 		switch cmd.name{
