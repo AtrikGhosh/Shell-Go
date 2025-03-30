@@ -161,8 +161,8 @@ func readInput(ioReader io.Reader) (input string){
 							fmt.Println()
 							sort.Strings(suffixes)
 							suggestions := []string{}
-							for i,suffix := range(suffixes){
-								suggestions[i] = input+suffix
+							for _,suffix := range(suffixes){
+								suggestions = append(suggestions,input+suffix)
 							}
 							fmt.Println(strings.Join(suggestions,"  "))
 							fmt.Print("$ "+input)
