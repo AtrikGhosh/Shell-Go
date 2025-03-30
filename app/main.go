@@ -158,13 +158,12 @@ func readInput(ioReader io.Reader) (input string){
 						}
 					} else if len(suffixes) > 1 {
 						if tab_flag {
-							fmt.Println()
+							fmt.Print("\n")
 							sort.Strings(suffixes)
-							suggestions := []string{}
-							for _,suffix := range(suffixes){
-								suggestions = append(suggestions,input+suffix)
+							for i,suffix := range(suffixes){
+								suffixes[i] = input+suffix
 							}
-							fmt.Println(strings.Join(suggestions,"  "))
+							fmt.Println(strings.Join(suffixes,"  "))
 							fmt.Print("$ "+input)
 							tab_flag = false
 						} else {
