@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"slices"
+	"sort"
 	"strings"
 
 	"golang.org/x/term"
@@ -122,7 +123,7 @@ func readInput(ioReader io.Reader) (input string){
 
 	currPos := -1
 	reader := bufio.NewReader(ioReader)
-
+	tab_flag := false
 	loop: 
 		for {
 			char ,_,err := reader.ReadRune()
@@ -145,12 +146,32 @@ func readInput(ioReader io.Reader) (input string){
 						currPos-=1
 						fmt.Print("\b \b")
 					}
+
 				case '\t': 
-				suffix := autocomplete(input)
-					if suffix != "" {
-						input += suffix + " "
-						fmt.Print(suffix+" ")
-						currPos = len(input)-1
+					suffixes:= autocomplete(input)
+					if len(suffixes) == 1 {
+						suffix := suffixes[0]
+						if suffix != "" {
+							input += suffix + " "
+							fmt.Print(suffix+" ")
+							currPos = len(input)-1
+						}
+					} else if len(suffixes) > 1 {
+						if tab_flag {
+							fmt.Println()
+							sort.Strings(suffixes)
+							for i,suffix := range(suffixes){
+								suffixes[i] = input+suffix
+							}
+							fmt.Println(strings.Join(suffixes,"  "))
+							fmt.Print("$ "+input)
+							tab_flag = false
+						} else {
+							fmt.Print("\a")
+							tab_flag = true
+						}
+					} else {
+						fmt.Print("\a")
 					}
 
 				case 27:
@@ -167,11 +188,10 @@ func readInput(ioReader io.Reader) (input string){
 		return input
 }
 
-func autocomplete(prefix string) (suffix string) {
+func autocomplete(prefix string) (suffixes []string) {
 	if prefix == "" {
 		return
 	}
-	suffixes := []string{}
 	for _, v := range builtinCMDs {
 		after, found := strings.CutPrefix(v, prefix)
 		if found && !slices.Contains(suffixes,after){
@@ -195,14 +215,7 @@ func autocomplete(prefix string) (suffix string) {
 			}
 		}
 	}
-	if len(suffixes) == 0{
-		fmt.Print("\a")
-	} else if len(suffixes) == 1 {
-		return suffixes[0]
-	} else {
-		fmt.Println(suffixes)
-	}
-	return
+	return suffixes
 }
 
 func main() {
