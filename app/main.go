@@ -163,7 +163,7 @@ func readInput(ioReader io.Reader) (input string){
 							for i,suffix := range(suffixes){
 								suffixes[i] = input+suffix
 							}
-							fmt.Println(strings.Join(suffixes,"  "))
+							fmt.Print(strings.Join(suffixes,"  ")+"\r")
 							fmt.Print("$ "+input)
 							tab_flag = false
 						} else {
