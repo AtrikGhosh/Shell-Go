@@ -174,7 +174,7 @@ func autocomplete(prefix string) (suffix string) {
 	suffixes := []string{}
 	for _, v := range builtinCMDs {
 		after, found := strings.CutPrefix(v, prefix)
-		if found {
+		if found && !slices.Contains(suffixes,after){
 			suffixes = append(suffixes, after)
 		}
 	}
@@ -188,7 +188,7 @@ func autocomplete(prefix string) (suffix string) {
 					continue
 				} else{
 					after, found := strings.CutPrefix(file.Name(), prefix)
-					if found {
+					if found && !slices.Contains(suffixes,after){
 						suffixes = append(suffixes, after)
 					}
 				}
