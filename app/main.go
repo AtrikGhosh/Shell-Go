@@ -27,6 +27,8 @@ type Command struct {
 	args []string
 }
 
+var cmd_history = []string{}
+
 func parseCmd(arg_str string) Command {
 
 	var args_list []string 
@@ -118,10 +120,11 @@ func readInput(ioReader io.Reader) (input string){
 		return
 	}
 	defer term.Restore(int(os.Stdin.Fd()), oldState)
-
-	currPos := -1
+	curr_cmd_idx := len(cmd_history)
+	cursorPos := -1
 	reader := bufio.NewReader(ioReader)
 	tab_flag := false
+	curr_typed_cache := ""
 	loop: 
 		for {
 			char ,_,err := reader.ReadRune()
@@ -139,10 +142,10 @@ func readInput(ioReader io.Reader) (input string){
 					break loop
 				
 				case '\b', 127: //Backspace
-					if currPos >= 0 {
-						input = input[:currPos] + input[currPos+1:]
-						currPos-=1
-						rewrite(input,currPos)
+					if cursorPos >= 0 {
+						input = input[:cursorPos] + input[cursorPos+1:]
+						cursorPos-=1
+						rewrite(input,cursorPos)
 						tab_flag = false
 					}
 
@@ -153,7 +156,7 @@ func readInput(ioReader io.Reader) (input string){
 						if suffix != "" {
 							input += suffix + " "
 							fmt.Print(suffix+" ")
-							currPos = len(input)-1
+							cursorPos = len(input)-1
 						}
 					} else if len(suffixes) > 1 {
 						if tab_flag {
@@ -175,7 +178,7 @@ func readInput(ioReader io.Reader) (input string){
 							if(common_suffix_index>0){
 								input += first_suffix[:common_suffix_index]
 								fmt.Print(first_suffix[:common_suffix_index])
-								currPos = len(input)-1
+								cursorPos = len(input)-1
 							} else {
 								fmt.Print(("\a"))
 								tab_flag = true
@@ -191,33 +194,56 @@ func readInput(ioReader io.Reader) (input string){
 					if next1 == '[' {
 						next2, _, _ := reader.ReadRune()
 						switch next2 {
+
+						case 'A': //Up Arrow
+							if(curr_cmd_idx == len(cmd_history) && len(input)>0){
+								curr_typed_cache = input
+							}
+							if curr_cmd_idx > 0 {
+								curr_cmd_idx -=1
+								input = cmd_history[curr_cmd_idx]
+								cursorPos = len(input)-1
+								rewrite(input,cursorPos)
+							}
+						case 'B': //Down Arrow
+							if curr_cmd_idx == len(cmd_history) - 1 {
+								curr_cmd_idx += 1
+								input = curr_typed_cache
+								cursorPos = len(input)-1
+								rewrite(input,cursorPos)
+							} else if curr_cmd_idx < len(cmd_history) - 1{
+								curr_cmd_idx +=1
+								input = cmd_history[curr_cmd_idx]
+								cursorPos = len(input)-1
+								rewrite(input,cursorPos)
+							}	
 						case 'C': // Right Arrow
-							if currPos < len(input)-1 {
-								currPos++
+							if cursorPos < len(input)-1 {
+								cursorPos++
 								fmt.Print("\033[1C")
 							}
 						case 'D': // Left Arrow (←)
-							if currPos >= 0 {
-								currPos--
+							if cursorPos >= 0 {
+								cursorPos--
 								fmt.Print("\033[1D")
 							}
 						}
 					}
 				
 				default:
-					input = input[:currPos+1] + string(char) + input[currPos+1:]
-					currPos += 1
+					input = input[:cursorPos+1] + string(char) + input[cursorPos+1:]
+					cursorPos += 1
 					tab_flag =false
-					rewrite(input,currPos)
+					rewrite(input,cursorPos)
 			}
 		}
-		
+		cmd_history = append(cmd_history,input)
 		return input
 }
 
-func rewrite(input string, currPos int){
+func rewrite(input string, cursorPos int){
 	fmt.Print("\r\033[K$ ",input)
-	fmt.Printf("\033[%dG",4 + currPos)
+	fmt.Printf("\033[%dG",4 + cursorPos)
 }
 func autocomplete(prefix string) (suffixes []string) {
 	if prefix == "" {
