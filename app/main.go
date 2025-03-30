@@ -195,12 +195,13 @@ func autocomplete(prefix string) (suffix string) {
 	// 		}
 	// 	}
 	// }
-	fmt.Println(suffixes)
 	if len(suffixes) == 0{
 		fmt.Print("\a")
 	} else if len(suffixes) == 1 {
 		return suffixes[0]
-	} 
+	} else {
+		fmt.Println(suffixes)
+	}
 	return
 }
 
