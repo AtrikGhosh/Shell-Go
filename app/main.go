@@ -173,11 +173,15 @@ func readInput(ioReader io.Reader) (input string){
 							for common_suffix_index<min_len && first_suffix[common_suffix_index] == last_suffix[common_suffix_index] {
 								common_suffix_index += 1
 							}
-
-							input += first_suffix[:common_suffix_index]
-							fmt.Print(first_suffix[:common_suffix_index])
-							currPos = len(input)-1
-							tab_flag = true
+							if(common_suffix_index>0){
+								input += first_suffix[:common_suffix_index]
+								fmt.Print(first_suffix[:common_suffix_index])
+								currPos = len(input)-1
+							} else {
+								fmt.Print(("\a"))
+								tab_flag = true
+							}
+							
 						}
 					} else {
 						fmt.Print("\a")
