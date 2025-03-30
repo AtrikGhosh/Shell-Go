@@ -112,44 +112,58 @@ func handleEchoRedirection(args []string,  redirectIdx int, redirectType string,
 	}
 }
 
-func readInput(rd io.Reader) (input string) {
+func readInput(ioReader io.Reader) (input string){
 	oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
 	if err != nil {
-		panic(err)
+		fmt.Println("Error enabling raw mode: ", err)
+		return
 	}
 	defer term.Restore(int(os.Stdin.Fd()), oldState)
-	r := bufio.NewReader(rd)
-	
-loop:
-	for {
-		c, _, err := r.ReadRune()
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-		switch c {
-		case '\x03': // Ctrl+C
-			os.Exit(0)
-		case '\r', '\n': // Enter
-			fmt.Fprint(os.Stdout, "\r\n")
-			break loop
-		case '\x7F': // Backspace
-			if length := len(input); length > 0 {
-				input = input[:length-1]
-				fmt.Fprint(os.Stdout, "\b \b")
+
+	currPos := -1
+	reader := bufio.NewReader(ioReader)
+
+	loop: 
+		for {
+			char ,_,err := reader.ReadRune()
+			if err != nil {
+				fmt.Println(err)
+				break loop
 			}
-		case '\t': // Tab
-			suffix := autocomplete(input)
-			if suffix != "" {
-				input += suffix + " "
-				fmt.Fprint(os.Stdout, suffix+" ")
+
+			switch char{
+				case '\x03': // Ctrl+C
+					os.Exit(0)
+
+				case '\r', '\n': // Enter
+					fmt.Print("\r\n")
+					break loop
+				
+				case '\b', 127: //Backspace
+					if currPos >= 0 {
+						input = input[:currPos] + input[currPos+1:]
+						currPos-=1
+						fmt.Print("\b \b")
+					}
+				case '\t': 
+				suffix := autocomplete(input)
+					if suffix != "" {
+						input += suffix + " "
+						fmt.Fprint(os.Stdout, suffix+" ")
+					}
+
+				case 27:
+					// todo : arrow + tab
+				
+				default:
+					input += string(char)
+					fmt.Print(string(char))
+					currPos += 1
+
 			}
-		default:
-			input += string(c)
-			fmt.Fprint(os.Stdout, string(c))
 		}
-	}
-	return
+		
+		return input
 }
 
 func autocomplete(prefix string) (suffix string) {
