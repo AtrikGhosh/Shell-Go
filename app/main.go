@@ -177,9 +177,11 @@ func autocomplete(prefix string) (suffix string) {
 			suffixes = append(suffixes, after)
 		}
 	}
-	if len(suffixes) == 1 {
+	if len(suffixes) == 0{
+		fmt.Print("\a")
+	} else if len(suffixes) == 1 {
 		return suffixes[0]
-	}
+	} 
 	return
 }
 
