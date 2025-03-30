@@ -158,7 +158,7 @@ func readInput(ioReader io.Reader) (input string){
 						}
 					} else if len(suffixes) > 1 {
 						if tab_flag {
-							fmt.Print("\n")
+							fmt.Print("\r")
 							sort.Strings(suffixes)
 							for i,suffix := range(suffixes){
 								suffixes[i] = input+suffix
