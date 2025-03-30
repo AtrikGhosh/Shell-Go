@@ -160,10 +160,11 @@ func readInput(ioReader io.Reader) (input string){
 						if tab_flag {
 							fmt.Println()
 							sort.Strings(suffixes)
+							suggestions := []string{}
 							for i,suffix := range(suffixes){
-								suffixes[i] = input+suffix
+								suggestions[i] = input+suffix
 							}
-							fmt.Println(strings.Join(suffixes,"  "))
+							fmt.Println(strings.Join(suggestions,"  "))
 							fmt.Print("$ "+input)
 							tab_flag = false
 						} else {
